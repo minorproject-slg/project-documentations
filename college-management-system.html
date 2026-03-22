@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>College Management System — Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0b0f1a;
+  --bg2: #111827;
+  --bg3: #1a2235;
+  --border: rgba(99,179,237,0.15);
+  --border-bright: rgba(99,179,237,0.45);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.12);
+  --teal: #2dd4bf;
+  --teal-dim: rgba(45,212,191,0.10);
+  --blue: #63b3ed;
+  --blue-dim: rgba(99,179,237,0.10);
+  --gray-text: #94a3b8;
+  --white: #e2e8f0;
+  --accent: #f59e0b;
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:var(--sans);overflow-x:hidden;min-height:100vh}
+
+/* ── GRID BACKGROUND ── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(99,179,237,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,179,237,0.04) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;
+}
+
+/* ── HERO ── */
+.hero{
+  position:relative;z-index:1;
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:60px 24px 40px;text-align:center;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,179,237,0.07) 0%, transparent 70%);
+}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--teal);border:1px solid rgba(45,212,191,0.3);
+  padding:5px 14px;border-radius:100px;margin-bottom:28px;
+  animation:fadeUp 0.6s ease both;
+}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+h1{
+  font-family:var(--mono);font-size:clamp(32px,5vw,62px);font-weight:700;line-height:1.1;
+  letter-spacing:-0.03em;color:#fff;
+  animation:fadeUp 0.7s 0.1s ease both;
+}
+h1 span{color:var(--blue)}
+.hero-sub{
+  margin-top:16px;font-size:16px;font-weight:300;color:var(--gray-text);max-width:540px;line-height:1.7;
+  animation:fadeUp 0.7s 0.2s ease both;
+}
+.hero-pills{
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:28px;
+  animation:fadeUp 0.7s 0.3s ease both;
+}
+.pill{
+  font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:6px;
+  border:1px solid var(--border);background:var(--bg2);color:var(--gray-text);
+}
+.hero-cta{
+  margin-top:40px;display:flex;gap:14px;
+  animation:fadeUp 0.7s 0.4s ease both;
+}
+.btn{
+  font-family:var(--mono);font-size:13px;padding:12px 28px;border-radius:8px;
+  cursor:pointer;border:none;letter-spacing:0.04em;transition:all .22s ease;
+}
+.btn-primary{background:var(--blue);color:#0b0f1a;font-weight:700}
+.btn-primary:hover{background:#90cdf4;transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,179,237,.3)}
+.btn-outline{background:transparent;color:var(--blue);border:1px solid var(--border-bright)}
+.btn-outline:hover{background:var(--blue-dim);transform:translateY(-2px)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SECTIONS ── */
+section{position:relative;z-index:1;padding:80px 24px;max-width:1080px;margin:0 auto}
+.sec-label{
+  font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:10px;
+}
+.sec-title{font-family:var(--mono);font-size:clamp(22px,3vw,34px);font-weight:700;color:#fff;line-height:1.2}
+.sec-sub{margin-top:10px;color:var(--gray-text);font-size:15px;font-weight:300;max-width:560px;line-height:1.7}
+.divider{width:100%;height:1px;background:var(--border);margin:0 auto}
+
+/* ── ARCH DIAGRAM ── */
+.arch-wrap{margin-top:52px}
+.arch-layer{margin-bottom:12px}
+.arch-label{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--gray-text);margin-bottom:8px;padding-left:4px;
+}
+.arch-row{display:flex;gap:10px;flex-wrap:wrap}
+
+/* Client cards */
+.node-client{
+  flex:1;min-width:140px;padding:14px 16px;border-radius:10px;
+  border:1px solid rgba(167,139,250,0.25);background:var(--purple-dim);
+  cursor:pointer;transition:all .22s ease;position:relative;overflow:hidden;
+}
+.node-client::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(167,139,250,0.08),transparent);opacity:0;transition:.22s}
+.node-client:hover{border-color:rgba(167,139,250,.6);transform:translateY(-3px);box-shadow:0 8px 28px rgba(167,139,250,.15)}
+.node-client:hover::before{opacity:1}
+.node-client .nt{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--purple)}
+.node-client .ns{font-size:12px;color:var(--gray-text);margin-top:3px}
+
+/* Gateway bar */
+.node-gateway{
+  width:100%;padding:14px 20px;border-radius:10px;
+  border:1px solid var(--border-bright);background:rgba(99,179,237,0.06);
+  display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;
+  cursor:pointer;transition:all .22s ease;
+}
+.node-gateway:hover{background:var(--blue-dim);transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,179,237,.1)}
+.gw-chip{font-family:var(--mono);font-size:12px;color:var(--blue);display:flex;align-items:center;gap:6px}
+.gw-dot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.gw-sep{width:1px;height:18px;background:var(--border)}
+
+/* Service cards */
+.node-service{
+  flex:1;min-width:140px;padding:14px 16px;border-radius:10px;
+  border:1px solid rgba(45,212,191,0.2);background:var(--teal-dim);
+  cursor:pointer;transition:all .22s ease;position:relative;overflow:hidden;
+}
+.node-service::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(45,212,191,0.08),transparent);opacity:0;transition:.22s}
+.node-service:hover{border-color:rgba(45,212,191,.55);transform:translateY(-3px);box-shadow:0 8px 24px rgba(45,212,191,.12)}
+.node-service:hover::before{opacity:1}
+.node-service .nt{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--teal)}
+.node-service .ns{font-size:12px;color:var(--gray-text);margin-top:3px}
+
+/* JPA band */
+.jpa-band{
+  width:100%;padding:12px 20px;border-radius:8px;
+  border:1px dashed rgba(245,158,11,.45);background:rgba(245,158,11,0.05);
+  display:flex;align-items:center;justify-content:center;gap:20px;
+  font-family:var(--mono);font-size:12px;color:var(--accent);
+  cursor:default;
+}
+.jpa-band span{opacity:0.45}
+
+/* DB cards */
+.node-db{
+  flex:1;min-width:120px;padding:12px 14px;border-radius:8px;
+  border:1px solid var(--border);background:var(--bg2);
+  cursor:pointer;transition:all .22s ease;
+}
+.node-db:hover{border-color:rgba(148,163,184,.4);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.node-db .nt{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--white)}
+.node-db .ns{font-size:11px;color:var(--teal);margin-top:3px}
+.node-db .nb{font-size:10px;color:var(--gray-text);margin-top:2px}
+
+/* Connector arrows */
+.arrows{display:flex;gap:10px;flex-wrap:wrap;padding:0 4px}
+.arrow-col{flex:1;min-width:140px;display:flex;flex-direction:column;align-items:center}
+.arr-line{width:1px;height:22px;background:linear-gradient(to bottom,var(--border-bright),rgba(99,179,237,.1))}
+.arr-head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid rgba(99,179,237,.45)}
+
+/* ── MODAL OVERLAY ── */
+.overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--border-bright);border-radius:16px;
+  max-width:540px;width:100%;padding:36px;position:relative;
+  animation:modalIn .25s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+.modal-close{
+  position:absolute;top:16px;right:16px;width:32px;height:32px;
+  border-radius:8px;border:1px solid var(--border);background:transparent;
+  color:var(--gray-text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:.18s;font-family:var(--mono);
+}
+.modal-close:hover{background:var(--bg3);color:#fff}
+.modal-tag{
+  display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;padding:4px 10px;border-radius:4px;margin-bottom:14px;
+}
+.tag-purple{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,.3)}
+.tag-teal{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,.3)}
+.tag-blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(99,179,237,.3)}
+.tag-amber{background:rgba(245,158,11,.1);color:var(--accent);border:1px solid rgba(245,158,11,.3)}
+.modal h2{font-family:var(--mono);font-size:20px;font-weight:700;color:#fff;margin-bottom:10px}
+.modal p{font-size:14px;color:var(--gray-text);line-height:1.75;margin-bottom:18px}
+.feat-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.feat-list li{
+  display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--white);
+  padding:10px 14px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);
+  line-height:1.5;
+}
+.feat-list li::before{content:'→';font-family:var(--mono);color:var(--teal);flex-shrink:0;margin-top:1px}
+
+/* ── MODULES GRID ── */
+.modules-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;
+  margin-top:44px;
+}
+.mod-card{
+  padding:22px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);
+  cursor:pointer;transition:all .22s ease;position:relative;overflow:hidden;
+}
+.mod-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--card-color,rgba(99,179,237,.06)),transparent);
+  opacity:0;transition:.22s;
+}
+.mod-card:hover{transform:translateY(-4px);border-color:var(--card-border,rgba(99,179,237,.4));box-shadow:0 12px 36px rgba(0,0,0,.35)}
+.mod-card:hover::after{opacity:1}
+.mod-icon{font-size:22px;margin-bottom:14px;line-height:1}
+.mod-name{font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.mod-desc{font-size:12px;color:var(--gray-text);line-height:1.6}
+
+/* ── PHASE 2 ── */
+.phase-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;
+  margin-top:40px;
+}
+.phase-item{
+  padding:16px 18px;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg2);opacity:0.65;
+  display:flex;align-items:center;gap:12px;
+  font-size:13px;color:var(--gray-text);
+  transition:.2s;cursor:default;
+}
+.phase-item:hover{opacity:0.9;border-color:rgba(167,139,250,.3)}
+.phase-badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.2);white-space:nowrap;flex-shrink:0}
+
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid var(--border);text-align:center;padding:36px 24px;
+  font-family:var(--mono);font-size:11px;color:var(--gray-text);
+  position:relative;z-index:1;letter-spacing:.06em;
+}
+footer a{color:var(--blue);text-decoration:none}
+footer a:hover{color:var(--teal)}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .arch-row{flex-direction:column}
+  .node-client,.node-service,.node-db{min-width:unset}
+  .arrows{flex-direction:column;align-items:center}
+  .arrow-col{min-width:unset}
+  .hero-cta{flex-direction:column;width:100%}
+  .btn{text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="badge"><span class="badge-dot"></span> Phase 1 MVP · Microservices</div>
+  <h1>College<br/><span>Management</span><br/>System</h1>
+  <p class="hero-sub">A modular, scalable web-based platform to digitize academic and administrative operations. Built with Spring Boot microservices, secured by JWT, and persisted via MySQL.</p>
+  <div class="hero-pills">
+    <span class="pill">Spring Boot</span>
+    <span class="pill">MySQL</span>
+    <span class="pill">Spring Data JPA</span>
+    <span class="pill">Hibernate ORM</span>
+    <span class="pill">JWT · RBAC</span>
+    <span class="pill">REST APIs</span>
+  </div>
+  <div class="hero-cta">
+    <button class="btn btn-primary" onclick="scrollTo({top:document.getElementById('arch').offsetTop-40,behavior:'smooth'})">View Architecture</button>
+    <button class="btn btn-outline" onclick="scrollTo({top:document.getElementById('modules').offsetTop-40,behavior:'smooth'})">Explore Modules</button>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ── ARCHITECTURE ── -->
+<section id="arch">
+  <div class="reveal">
+    <div class="sec-label">System design</div>
+    <div class="sec-title">Backend Architecture</div>
+    <p class="sec-sub">Five independently deployable microservices, each with an isolated MySQL database, bridged through Spring Data JPA and Hibernate ORM.</p>
+  </div>
+
+  <div class="arch-wrap reveal">
+
+    <!-- Clients -->
+    <div class="arch-layer">
+      <div class="arch-label">Client Layer</div>
+      <div class="arch-row">
+        <div class="node-client" onclick="openModal('admin')">
+          <div class="nt">Admin Portal</div>
+          <div class="ns">College staff · Full access</div>
+        </div>
+        <div class="node-client" onclick="openModal('faculty')">
+          <div class="nt">Faculty Portal</div>
+          <div class="ns">Teaching staff · Subject access</div>
+        </div>
+        <div class="node-client" onclick="openModal('student')">
+          <div class="nt">Student Portal</div>
+          <div class="ns">Enrolled students · View access</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow row -->
+    <div class="arrows">
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+    </div>
+
+    <!-- Gateway -->
+    <div class="arch-layer">
+      <div class="arch-label">Gateway / Security Layer</div>
+      <div class="node-gateway" onclick="openModal('gateway')">
+        <div class="gw-chip"><div class="gw-dot"></div>REST API</div>
+        <div class="gw-sep"></div>
+        <div class="gw-chip"><div class="gw-dot"></div>JWT Authentication</div>
+        <div class="gw-sep"></div>
+        <div class="gw-chip"><div class="gw-dot"></div>RBAC Authorization</div>
+      </div>
+    </div>
+
+    <!-- Arrow row -->
+    <div class="arrows">
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+    </div>
+
+    <!-- Microservices -->
+    <div class="arch-layer">
+      <div class="arch-label">Microservices Layer</div>
+      <div class="arch-row">
+        <div class="node-service" onclick="openModal('auth-svc')">
+          <div class="nt">Auth Service</div>
+          <div class="ns">Login · JWT · BCrypt</div>
+        </div>
+        <div class="node-service" onclick="openModal('user-svc')">
+          <div class="nt">User Service</div>
+          <div class="ns">Profiles · Roles</div>
+        </div>
+        <div class="node-service" onclick="openModal('academic-svc')">
+          <div class="nt">Academic Service</div>
+          <div class="ns">Courses · Marks · GPA</div>
+        </div>
+        <div class="node-service" onclick="openModal('finance-svc')">
+          <div class="nt">Finance Service</div>
+          <div class="ns">Fees · Transactions</div>
+        </div>
+        <div class="node-service" onclick="openModal('notif-svc')">
+          <div class="nt">Notification</div>
+          <div class="ns">Alerts · Emails</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow row -->
+    <div class="arrows">
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+    </div>
+
+    <!-- JPA Band -->
+    <div class="arch-layer">
+      <div class="arch-label">Persistence Layer</div>
+      <div class="jpa-band" onclick="openModal('jpa')">
+        <span>Spring Data JPA</span>
+        <span>·</span>
+        <span>Hibernate ORM</span>
+        <span>·</span>
+        <span>Entity mapping · JPQL · Transactions</span>
+      </div>
+    </div>
+
+    <!-- Arrow row -->
+    <div class="arrows">
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+      <div class="arrow-col"><div class="arr-line"></div><div class="arr-head"></div></div>
+    </div>
+
+    <!-- Databases -->
+    <div class="arch-layer">
+      <div class="arch-label">Data Layer — MySQL (isolated per service)</div>
+      <div class="arch-row">
+        <div class="node-db" onclick="openModal('auth-db')">
+          <div class="nt">Auth DB</div>
+          <div class="ns">MySQL</div>
+          <div class="nb">users · roles · tokens</div>
+        </div>
+        <div class="node-db" onclick="openModal('user-db')">
+          <div class="nt">User DB</div>
+          <div class="ns">MySQL</div>
+          <div class="nb">students · faculty</div>
+        </div>
+        <div class="node-db" onclick="openModal('academic-db')">
+          <div class="nt">Academic DB</div>
+          <div class="ns">MySQL</div>
+          <div class="nb">courses · attendance · results</div>
+        </div>
+        <div class="node-db" onclick="openModal('finance-db')">
+          <div class="nt">Finance DB</div>
+          <div class="ns">MySQL</div>
+          <div class="nb">fees · transactions</div>
+        </div>
+        <div class="node-db" onclick="openModal('notif-db')">
+          <div class="nt">Notif. DB</div>
+          <div class="ns">MySQL</div>
+          <div class="nb">messages · logs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inter-service note -->
+    <div style="margin-top:24px;padding:14px 18px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--gray-text);letter-spacing:.06em">INTER-SERVICE COMM.</span>
+      <span style="font-family:var(--mono);font-size:12px;color:var(--blue)">HTTP REST · OpenFeign / RestTemplate</span>
+      <span style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--gray-text)">Future → Kafka / RabbitMQ</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── MODULES ── -->
+<section id="modules">
+  <div class="reveal">
+    <div class="sec-label">Feature overview</div>
+    <div class="sec-title">System Modules</div>
+    <p class="sec-sub">Ten core modules covering every daily college operation from authentication to fee management. Click any to explore.</p>
+  </div>
+
+  <div class="modules-grid reveal">
+    <div class="mod-card" style="--card-color:rgba(167,139,250,.08);--card-border:rgba(167,139,250,.4)" onclick="openModal('mod-auth')">
+      <div class="mod-icon">🔐</div>
+      <div class="mod-name">Auth & Authorization</div>
+      <div class="mod-desc">JWT tokens, RBAC, BCrypt password hashing, session management</div>
+    </div>
+    <div class="mod-card" style="--card-color:rgba(45,212,191,.08);--card-border:rgba(45,212,191,.4)" onclick="openModal('mod-student')">
+      <div class="mod-icon">👤</div>
+      <div class="mod-name">Student Management</div>
+      <div class="mod-desc">Profiles, documents, lifecycle status, unique ID generation</div>
+    </div>
+    <div class="mod-card" style="--card-color:rgba(99,179,237,.08);--card-border:rgba(99,179,237,.4)" onclick="openModal('mod-faculty')">
+      <div class="mod-icon">🏫</div>
+      <div class="mod-name">Faculty Management</div>
+      <div class="mod-desc">Profiles, qualifications, subject assignment, workload tracking</div>
+    </div>
+    <div class="mod-card" style="--card-color:rgba(245,158,11,.08);--card-border:rgba(245,158,11,.4)" onclick="openModal('mod-course')">
+      <div class="mod-icon">📚</div>
+      <div class="mod-name">Course & Subjects</div>
+      <div class="mod-desc">Departments, courses, subject mapping, faculty assignment</div>
+    </div>
+    <div class="mod-card" style="--card-color:rgba(167,139,250,.08);--card-border:rgba(167,139,250,.4)" onclick="openModal('mod-attendance')">
+      <div class="mod-icon">📋</div>
+      <div class="mod-name">Attendance</div>
+      <div class="mod-desc">Subject-wise marking, percentage calc, low attendance alerts</div>
+    </div>
+    <div class="mod-card" style="--card-color:rgba(45,212,191,.08);--card-border:rgba(45,212,191,.4)" onclick="openModal('mod-exam')">
+      <div class="mod-icon">📝</div>
+      <div class="mod-name">Exam & Results</div>
+      <div class="mod-desc">Marks entry, GPA/CGPA calculation, result publishing</div>
+    </div>
+    <div class="mod-card" style="--card-color:rgba(99,179,237,.08);--card-border:rgba(99,179,237,.4)" onclick="openModal('mod-fee')">
+      <div class="mod-icon">💰</div>
+      <div class="mod-name">Fee Management</div>
+      <div class="mod-desc">Fee structure, paid/unpaid tracking, receipts, transactions</div>
+    </div>
+    <div class="mod-card" style="--card-color:rgba(245,158,11,.08);--card-border:rgba(245,158,11,.4)" onclick="openModal('mod-dashboard')">
+      <div class="mod-icon">📊</div>
+      <div class="mod-name">Dashboard</div>
+      <div class="mod-desc">Counts, attendance overview, activity logs, quick nav</div>
+    </div>
+    <div class="mod-card" style="--card-color:rgba(167,139,250,.08);--card-border:rgba(167,139,250,.4)" onclick="openModal('mod-notif')">
+      <div class="mod-icon">🔔</div>
+      <div class="mod-name">Notifications</div>
+      <div class="mod-desc">In-app alerts, optional email, event-based triggers</div>
+    </div>
+    <div class="mod-card" style="--card-color:rgba(45,212,191,.08);--card-border:rgba(45,212,191,.4)" onclick="openModal('mod-audit')">
+      <div class="mod-icon">🗂</div>
+      <div class="mod-name">Audit & Logs</div>
+      <div class="mod-desc">Login tracking, data change history, admin activity logs</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── PHASE 2 ── -->
+<section id="phase2">
+  <div class="reveal">
+    <div class="sec-label">Roadmap</div>
+    <div class="sec-title">Phase 2 Enhancements</div>
+    <p class="sec-sub">Planned features for the next phase of development, extending the core MVP into a full campus management platform.</p>
+  </div>
+  <div class="phase-grid reveal">
+    <div class="phase-item"><span class="phase-badge">Phase 2</span>Biometric / RFID attendance</div>
+    <div class="phase-item"><span class="phase-badge">Phase 2</span>Auto timetable generation</div>
+    <div class="phase-item"><span class="phase-badge">Phase 2</span>Library management system</div>
+    <div class="phase-item"><span class="phase-badge">Phase 2</span>Hostel &amp; transport modules</div>
+    <div class="phase-item"><span class="phase-badge">Phase 2</span>Placement &amp; alumni systems</div>
+    <div class="phase-item"><span class="phase-badge">Phase 2</span>Advanced analytics &amp; reporting</div>
+    <div class="phase-item"><span class="phase-badge">Phase 2</span>Mobile application support</div>
+    <div class="phase-item"><span class="phase-badge">Phase 2</span>API Gateway (Eureka)</div>
+    <div class="phase-item"><span class="phase-badge">Phase 2</span>Kafka / RabbitMQ async comms</div>
+    <div class="phase-item"><span class="phase-badge">Phase 2</span>Docker containerisation</div>
+  </div>
+</section>
+
+<footer>
+  <p>College Management System &nbsp;·&nbsp; <a href="https://github.com/minorproject-slg/project-documentations" target="_blank">github.com/minorproject-slg</a> &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; Phase 1 MVP</p>
+</footer>
+
+<!-- ── MODAL ── -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeOverlay()">✕</button>
+    <div id="modal-tag" class="modal-tag tag-teal"></div>
+    <h2 id="modal-title"></h2>
+    <p id="modal-desc"></p>
+    <ul class="feat-list" id="modal-features"></ul>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  admin:{tag:'Client · Admin',tagClass:'tag-purple',title:'Admin Portal',desc:'Full-access interface for college administrators to manage all system data, configure modules, view reports, and monitor activity logs.',features:['Manage all students, faculty, and staff','Configure fee structures and departments','View audit logs and system activity','Generate reports and dashboards','Access all modules without restriction']},
+  faculty:{tag:'Client · Faculty',tagClass:'tag-purple',title:'Faculty Portal',desc:'Subject-scoped interface for teaching staff to manage attendance, enter marks, view workloads, and communicate via notifications.',features:['Mark attendance subject-wise','Enter and publish student marks','View assigned subjects and schedules','Receive in-app and email notifications','Manage own profile and qualifications']},
+  student:{tag:'Client · Student',tagClass:'tag-purple',title:'Student Portal',desc:'Read-focused interface for enrolled students to track attendance, view results, check fee status, and receive alerts.',features:['View subject-wise attendance percentage','Check published exam results and GPA','Track fee payment status and receipts','Receive low-attendance and fee-due alerts','View own profile and enrolled courses']},
+  gateway:{tag:'Security Layer',tagClass:'tag-blue',title:'REST API · JWT · RBAC',desc:'All client requests pass through this layer. JWT tokens authenticate every request; Role-Based Access Control restricts which endpoints each role can reach.',features:['JWT token generation and validation on every request','RBAC: Admin, Faculty, Student role enforcement','Secure password storage via BCrypt hashing','Session management and logout handling','Input validation and basic protection mechanisms']},
+  'auth-svc':{tag:'Microservice',tagClass:'tag-teal',title:'Auth Service',desc:'Handles all authentication and authorisation logic. Issues JWT tokens on login, validates them on every request, and enforces role-based permissions.',features:['User login/logout endpoints','JWT token generation and expiry management','BCrypt password hashing on registration','RBAC enforcement for secured routes','Token blacklisting on logout']},
+  'user-svc':{tag:'Microservice',tagClass:'tag-teal',title:'User Service',desc:'Manages every user entity in the system — student profiles, faculty profiles, document uploads, and role assignments.',features:['Add / Edit / Delete student profiles','Store personal, academic, and contact details','Upload and manage documents per student','Faculty profile management with qualifications','Unique student ID auto-generation']},
+  'academic-svc':{tag:'Microservice',tagClass:'tag-teal',title:'Academic Service',desc:'The core academic engine: departments, courses, subjects, attendance tracking, exam records, and GPA calculation.',features:['Create departments, courses, and subjects','Assign subjects to departments and faculty','Subject-wise attendance marking and calculation','Exam records creation and marks entry','GPA / CGPA calculation and result publishing']},
+  'finance-svc':{tag:'Microservice',tagClass:'tag-teal',title:'Finance Service',desc:'Manages the complete financial lifecycle for students — from fee structure definition to payment tracking and receipt generation.',features:['Define fee structures per course/semester','Track paid and unpaid fee status per student','Record payment transactions with timestamps','Generate printable fee receipts','Trigger due-fee notification events']},
+  'notif-svc':{tag:'Microservice',tagClass:'tag-teal',title:'Notification Service',desc:'Event-driven notification engine that sends in-app alerts and optional emails based on triggers from other services.',features:['In-app notifications for students and faculty','Optional email alerts via SMTP integration','Low attendance trigger (below threshold)','Fee due / overdue trigger from Finance service','Result published trigger from Academic service']},
+  jpa:{tag:'Persistence Layer',tagClass:'tag-amber',title:'Spring Data JPA · Hibernate ORM',desc:'Sits between all microservices and their MySQL databases. Provides repository interfaces, JPQL queries, entity mapping, and transaction management without boilerplate SQL.',features:['JpaRepository interfaces for CRUD out-of-the-box','Hibernate maps Java @Entity classes to MySQL tables','JPQL / named queries for complex lookups','@Transactional for atomic multi-step operations','Schema auto-generation via hibernate.ddl-auto']},
+  'auth-db':{tag:'MySQL · Auth DB',tagClass:'tag-blue',title:'Auth Database',desc:'Isolated MySQL database for the Auth Service. Stores credentials, roles, and token metadata.',features:['users table: id, email, password_hash, role, created_at','roles table: id, name, permissions','refresh_tokens table: token, user_id, expires_at','password_reset_tokens table','Indexes on email and token fields']},
+  'user-db':{tag:'MySQL · User DB',tagClass:'tag-blue',title:'User Database',desc:'Stores all student and faculty profile data, documents, and role mappings.',features:['students table: id, name, email, dob, course, status','faculty table: id, name, email, qualification, dept','documents table: id, student_id, file_path, type','student_lifecycle: active / inactive / graduated','Foreign key to Auth DB user_id for linking']},
+  'academic-db':{tag:'MySQL · Academic DB',tagClass:'tag-blue',title:'Academic Database',desc:'Stores all academic data — departments, courses, subjects, attendance records, exam marks, and results.',features:['departments, courses, subjects tables','subject_faculty mapping table','attendance: id, student_id, subject_id, date, present','exams: id, subject_id, date, max_marks','results: id, student_id, exam_id, marks, gpa']},
+  'finance-db':{tag:'MySQL · Finance DB',tagClass:'tag-blue',title:'Finance Database',desc:'Manages fee structures, payment records, and transaction logs.',features:['fee_structures: id, course_id, amount, semester','fee_payments: id, student_id, amount, paid_date, status','transactions: id, payment_id, method, reference','receipts: id, payment_id, generated_at, pdf_path','Indexed on student_id and payment status']},
+  'notif-db':{tag:'MySQL · Notif DB',tagClass:'tag-blue',title:'Notification Database',desc:'Stores all notification messages, delivery status, and event logs.',features:['notifications: id, user_id, title, body, read, created_at','email_logs: id, to, subject, status, sent_at','event_triggers: id, type, source_service, payload, triggered_at','Soft deletes for notification history retention']},
+  'mod-auth':{tag:'Module',tagClass:'tag-purple',title:'Auth & Authorization',desc:'Secures the entire platform using JWT-based stateless authentication and Role-Based Access Control for three roles.',features:['User login and logout with JWT tokens','JWT token validation on every protected endpoint','BCrypt hashing for secure password storage','Admin, Faculty, Student role enforcement','Session expiry and token refresh handling']},
+  'mod-student':{tag:'Module',tagClass:'tag-teal',title:'Student Management',desc:'Complete student lifecycle management from enrollment to graduation.',features:['Add, edit, delete student profiles with all details','Store personal, academic, and contact information','Upload and manage identification documents','Assign lifecycle status: active / inactive / graduated','Auto-generate unique student IDs on enrollment']},
+  'mod-faculty':{tag:'Module',tagClass:'tag-teal',title:'Faculty Management',desc:'End-to-end faculty record management tied to departments and subjects.',features:['Add, edit, delete faculty profiles','Store educational qualifications and expertise areas','Assign subjects to faculty members','Track subject-wise workload per semester','Manage department-to-faculty mapping']},
+  'mod-course':{tag:'Module',tagClass:'tag-amber',title:'Course & Subject Management',desc:'Organisational backbone of the academic system — everything links to departments, courses, and subjects.',features:['Create and manage departments','Add courses under departments','Add subjects under courses with credit hours','Map faculty members to specific subjects','Track subject availability per semester']},
+  'mod-attendance':{tag:'Module',tagClass:'tag-purple',title:'Attendance Management',desc:'Subject-wise manual attendance system with percentage tracking and alert triggers.',features:['Faculty marks attendance per subject per date','Stores date-wise attendance records per student','Calculates attendance percentage automatically','Flags students below minimum attendance threshold','Triggers low-attendance notifications to students']},
+  'mod-exam':{tag:'Module',tagClass:'tag-teal',title:'Examination & Results',desc:'Manages the full exam lifecycle from paper creation to published results and GPA computation.',features:['Create exam records per subject and semester','Faculty enters subject-wise marks per student','GPA / CGPA computed from marks automatically','Admin publishes results for student view','Result history stored for all past semesters']},
+  'mod-fee':{tag:'Module',tagClass:'tag-blue',title:'Fee Management',desc:'Handles the complete financial flow — structure definition, tracking payments, generating receipts.',features:['Admin defines fee structures per course/semester','Track paid and unpaid fee status per student','Record payment transactions with timestamps','Generate printable fee receipts in PDF format','Overdue fees trigger notification to student']},
+  'mod-dashboard':{tag:'Module',tagClass:'tag-amber',title:'Dashboard',desc:'Central overview panel giving admins a real-time snapshot of the college\'s operational status.',features:['Total student and faculty count widgets','Attendance percentage overview chart','Recent activity log (logins, data updates)','Quick navigation to all major modules','Pending fee and low-attendance summary cards']},
+  'mod-notif':{tag:'Module',tagClass:'tag-purple',title:'Notification System',desc:'Event-driven alert system connecting all services to users via in-app and email channels.',features:['In-app notifications shown on user dashboards','Email notifications via SMTP (optional toggle)','Low attendance trigger from Academic service','Fee due/overdue trigger from Finance service','Result published trigger — students notified instantly']},
+  'mod-audit':{tag:'Module',tagClass:'tag-teal',title:'Audit & Logs',desc:'System-wide activity tracking for admin accountability and security auditing.',features:['Records every login and logout with timestamp and IP','Logs all data create/update/delete operations','Admin can filter logs by user, date, and action type','Stored in append-only log table for integrity','Foundation for future centralised monitoring (Phase 2)']},
+};
+
+function openModal(key){
+  const d=DATA[key];if(!d)return;
+  document.getElementById('modal-tag').textContent=d.tag;
+  document.getElementById('modal-tag').className='modal-tag '+(d.tagClass||'tag-teal');
+  document.getElementById('modal-title').textContent=d.title;
+  document.getElementById('modal-desc').textContent=d.desc;
+  const ul=document.getElementById('modal-features');
+  ul.innerHTML=d.features.map(f=>`<li>${f}</li>`).join('');
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeOverlay(){
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function closeModal(e){if(e.target===document.getElementById('overlay'))closeOverlay();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOverlay();});
+
+// Scroll reveal
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(en=>{if(en.isIntersecting){en.target.classList.add('visible');obs.unobserve(en.target);}});
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
