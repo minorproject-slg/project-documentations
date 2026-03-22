@@ -161,12 +161,12 @@ Handles system communication.
 *   Can be containerized using Docker (optional)
     
 
-**7\. Future Enhancements**
+**7\. More Enhancements For Now And Future**
 ---------------------------
 
 *   API Gateway (central request routing)
     
-*   Service Discovery (e.g., Eureka)
+*   Service Discovery (e.g., Eureka): 
     
 *   Centralized logging and monitoring
     
